@@ -242,7 +242,7 @@ However, in the Notebook, the function is called three times with three differen
 | #2           | 96x96       | 70%     |
 | #3           | 128x128     | 70%     |
 
-The output of the `slide_window` calls generates the following output.
+The output of the `slide_window` calls is reported below.
 
 ![Cars](output_images/windows_def.jpg)
 
@@ -263,7 +263,9 @@ Video Implementation
 
 ***Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.***
 
-The introduction of a heapmap to idenfiy the car positions was the most important choiche in reducing the the number of false positives.
+[Link To Video](https://youtu.be/5OZsDznUVvA)
+
+The introduction of a heatmap to idenfiy the car positions was the most important choiche in reducing the the number of false positives.
 
 Going a bit in detail, for each frame of the video:
 
@@ -279,7 +281,7 @@ Discussion
 
 The most relevant issue I faced in this project was figuring the correct windows size to let my classifier perform reasonably well. I ended up by playing around with values that go from 64x64 up to 128x128 but I figured that the best lower bound was 80x80.
 
-Another important hyperparameter to train was the windows overlap. High values of overlap (80%-90%) produce a lot of windows but, at the same time allow to better identify the car position. On the contrary, low values of overlap (20%-30%) generate only a few windows making harder for the classifier to correcly identify the car position.
+Another important hyperparameter to train was the windows overlap. High values of overlap (80%-90%) produce a lot of windows and, at the same time allow to better identify the car position. On the contrary, low values of overlap (20%-30%) generate only a few windows making harder for the classifier to correcly identify the car position.
 
 One drawback of my classifier is the image saturation. In other words, really brigth images or really dark images will likely fail to be classified correctly. In order to avoid such a behaviour I think to normalize the histogram of an image before feed it into the classifier.
 
