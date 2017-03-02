@@ -184,7 +184,77 @@ Sliding Window Search
 
 ***Describe how (and identify where in your code) you implemented a sliding window search. How did you decide what scales to search and how much to overlap windows?***
 
+The snippet below was used in the notebook to extract a set of windows from each frame of the videoclip.
+
+```python
+def slide_window(img, x_start_stop=[None, None], y_start_stop=[None, None],
+                     xy_window=(64, 64), xy_overlap=(0.5, 0.5)):
+    # If x and/or y start/stop positions not defined, set to image size
+    if x_start_stop[0] == None:
+        x_start_stop[0] = 0
+    if x_start_stop[1] == None:
+        x_start_stop[1] = img.shape[1]
+    if y_start_stop[0] == None:
+        y_start_stop[0] = 0
+    if y_start_stop[1] == None:
+        y_start_stop[1] = img.shape[0]
+
+    # Compute the span of the region to be searched
+    xspan = x_start_stop[1] - x_start_stop[0]
+    yspan = y_start_stop[1] - y_start_stop[0]
+
+    # Compute the number of pixels per step in x/y
+    nx_pix_per_step = np.int(xy_window[0]*(1 - xy_overlap[0]))
+    ny_pix_per_step = np.int(xy_window[1]*(1 - xy_overlap[1]))
+
+    # Compute the number of windows in x/y
+    nx_windows = np.int(xspan/nx_pix_per_step) - 1
+    ny_windows = np.int(yspan/ny_pix_per_step) - 1
+
+    # Initialize a list to append window positions to
+    window_list = []
+
+    # Loop through finding x and y window positions
+    # Note: you could vectorize this step, but in practice
+    # you'll be considering windows one by one with your
+    # classifier, so looping makes sense
+    for ys in range(ny_windows):
+        for xs in range(nx_windows):
+            # Calculate window position
+            startx = xs*nx_pix_per_step + x_start_stop[0]
+            endx = startx + xy_window[0]
+            starty = ys*ny_pix_per_step + y_start_stop[0]
+            endy = starty + xy_window[1]
+            # Append window position to list
+            window_list.append(((startx, starty), (endx, endy)))
+
+    # Return the list of windows
+    return window_list
+```
+
+It is worth noting that the function `slide_window` performs a rough search which spans across the entire `x_start_stop` and `y_start_stop` square.
+
+However, in the Notebook, the function is called three times with three different window sizes and three different overlap values.
+
+| #Call        | Window Size | Overlap |
+|--------------|-------------|---------|
+| #1           | 80x80       | 80%     |
+| #2           | 96x96       | 70%     |
+| #3           | 128x128     | 70%     |
+
+The output of the `slide_window` calls generates the following output.
+
+![Cars](output_images/windows_def.jpg)
+
+I would like to point out that no optimizations in the window search has been done at this stage of development.
+
 ***Show some examples of test images to demonstrate how your pipeline is working. How did you optimize the performance of your classifier?***
+
+By changing the size of the windows I was able to increase the number of correct classified images.
+
+Here below are reported six different outputs of my pipeline.
+
+![Cars](output_images/pipe_output_6.jpg)
 
 Video Implementation
 ---
@@ -193,7 +263,28 @@ Video Implementation
 
 ***Describe how (and identify where in your code) you implemented some kind of filter for false positives and some method for combining overlapping bounding boxes.***
 
+The introduction of a heapmap to idenfiy the car positions was the most important choiche in reducing the the number of false positives.
+
+Going a bit in detail, for each frame of the video:
+
+  1. I extracted a set of windows
+  1. I classified the images inside the windows
+  1. I created a heatmap of the position of the car
+  1. I drawn the boxes around the cars
+
 Discussion
 ---
 
 ***Briefly discuss any problems / issues you faced in your implementation of this project. Where will your pipeline likely fail? What could you do to make it more robust?***
+
+The most relevant issue I faced in this project was figuring the correct windows size to let my classifier perform reasonably well. I ended up by playing around with values that go from 64x64 up to 128x128 but I figured that the best lower bound was 80x80.
+
+Another important hyperparameter to train was the windows overlap. High values of overlap (80%-90%) produce a lot of windows but, at the same time allow to better identify the car position. On the contrary, low values of overlap (20%-30%) generate only a few windows making harder for the classifier to correcly identify the car position.
+
+One drawback of my classifier is the image saturation. In other words, really brigth images or really dark images will likely fail to be classified correctly. In order to avoid such a behaviour I think to normalize the histogram of an image before feed it into the classifier.
+
+Another improvement would be training my classifier using another set of features either by using 2 HOG color spaces or the color features themself.
+
+To conclude, I would really like to traing a CNN to use as classifier instead of using the SVM.
+
+*Stefano*
